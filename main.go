@@ -8,14 +8,15 @@ import (
 	"image"
 	"image/jpeg"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
 )
 
 type Image struct {
-	Type string
-	Data string // url?
+	Type string `json:"type"`
+	Data string `json:"data"`
 }
 
 func (i Image) ByteReader() io.Reader {
@@ -26,15 +27,17 @@ func (i Image) ByteReader() io.Reader {
 }
 
 type Audio struct {
-	Type string
-	Data string // url?
+	Type string `json:"type"`
+	Data string `json:"data"`
+}
+
+type Meta struct {
+	Audio Audio `json:"audio"`
 }
 
 type Payload struct {
-	Content Image
-	Meta    struct {
-		Audio Audio
-	}
+	Content Image `json:"content"`
+	Meta    Meta  `json:"meta"`
 }
 
 // Rotates an image 90deg to the left.
@@ -87,16 +90,19 @@ func workIt(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&p)
 	if err != nil {
+		log.Printf("ERROR: %s", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	enc := json.NewEncoder(w)
 	new_payload, err := PayloadToPayload(p)
 	if err != nil {
+		log.Printf("ERROR: %s", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
 	enc.Encode(new_payload)
 }
 
