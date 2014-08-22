@@ -93,7 +93,10 @@ func workIt(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/", workIt)
-	port := os.Getenv("PORT") || "8080"
+	port := os.Getenv("PORT")
+	if port == nil {
+		port = "8080"
+	}
 	fmt.Println("Listening on " + port)
 	http.ListenAndServe(":"+port, nil)
 }
