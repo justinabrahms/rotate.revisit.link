@@ -61,6 +61,11 @@ func PayloadToPayload(p Payload) (Payload, error) {
 		return p, err
 	}
 
+	// Not sure how to handle non-jpegs yet.
+	if format != "jpeg" {
+		return p, nil
+	}
+
 	img := image.NewRGBA(m.Bounds())
 	rotate(m, *img)
 
@@ -87,22 +92,23 @@ func workIt(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var p Payload
+	enc := json.NewEncoder(w)
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&p)
 	if err != nil {
 		log.Printf("ERROR: %s", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		enc.Encode(p)
 		return
 	}
 
 	new_payload, err := PayloadToPayload(p)
 	if err != nil {
 		log.Printf("ERROR: %s", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		enc.Encode(p)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)
 	enc.Encode(new_payload)
 }
 
