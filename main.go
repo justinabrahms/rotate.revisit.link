@@ -79,6 +79,7 @@ func PayloadToPayload(p Payload) Payload {
 }
 
 func workIt(w http.ResponseWriter, r *http.Request) {
+
 	var p Payload
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&p)
@@ -92,7 +93,10 @@ func workIt(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", workIt)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "<a href='https://github.com/revisitors'>You know me?</a>")
+	})
+	http.HandleFunc("/rotate/", workIt)
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
