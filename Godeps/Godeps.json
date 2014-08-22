@@ -1,0 +1,5 @@
+{
+	"ImportPath": "github.com/justinabrahms/revisit-slice-rotate",
+	"GoVersion": "go1.2",
+	"Deps": []
+}
