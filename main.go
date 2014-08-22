@@ -8,7 +8,6 @@ import (
 	"image"
 	"image/jpeg"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -51,12 +50,12 @@ func rotate(m image.Image, dst image.RGBA) {
 	}
 }
 
-func PayloadToPayload(p Payload) Payload {
+func PayloadToPayload(p Payload) (Payload, error) {
 	reader := p.Content.ByteReader()
 
 	m, format, err := image.Decode(reader)
 	if err != nil {
-		log.Fatal("Couldn't decode: ", err)
+		return p, err
 	}
 
 	img := image.NewRGBA(m.Bounds())
@@ -65,7 +64,7 @@ func PayloadToPayload(p Payload) Payload {
 	buf := bytes.NewBuffer(nil)
 	err = jpeg.Encode(buf, img, nil)
 	if err != nil {
-		log.Fatal(err)
+		return p, err
 	}
 
 	z := base64.StdEncoding.EncodeToString(buf.Bytes())
@@ -75,21 +74,30 @@ func PayloadToPayload(p Payload) Payload {
 			Type: fmt.Sprintf("image/%s", format),
 			Data: fmt.Sprintf("data:image/%s;base64,%s", format, z),
 		},
-	}
+	}, nil
 }
 
 func workIt(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		w.WriteHeader(200)
+		return
+	}
 
 	var p Payload
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&p)
 	if err != nil {
-		// TODO(justinabrahms): Make more resiliant.
-		log.Fatal("Couldn't decode from json: ", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	enc := json.NewEncoder(w)
-	enc.Encode(PayloadToPayload(p))
+	new_payload, err := PayloadToPayload(p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	enc.Encode(new_payload)
 }
 
 func main() {
