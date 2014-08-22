@@ -10,6 +10,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -92,6 +93,7 @@ func workIt(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/", workIt)
-	fmt.Println("Listening on 8080")
-	http.ListenAndServe(":8080", nil)
+	port := os.Getenv("PORT") || "8080"
+	fmt.Println("Listening on " + port)
+	http.ListenAndServe(":"+port, nil)
 }
