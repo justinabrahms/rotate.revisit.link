@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
+	"image/draw"
 	"image/jpeg"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
@@ -53,6 +55,13 @@ func rotate(m image.Image, dst image.RGBA) {
 	}
 }
 
+func drawFutzery(m image.Image, dst image.RGBA) {
+	// TODO(justinabrahms): randomize
+	point := image.Point{0, 0}
+
+	draw.Draw(m, m.Bounds(), dst, point, draw.Src)
+}
+
 func PayloadToPayload(p Payload) (Payload, error) {
 	reader := p.Content.ByteReader()
 
@@ -63,7 +72,7 @@ func PayloadToPayload(p Payload) (Payload, error) {
 
 	// Not sure how to handle non-jpegs yet.
 	if format != "jpeg" {
-		log.Println("We only know how to decode jpegs")
+		log.Printf("We only know how to decode jpegs, not %s", format)
 		return p, nil
 	}
 
@@ -115,6 +124,7 @@ func workIt(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	rand.Seed(1)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "<a href='https://github.com/revisitors'>You know me?</a>")
 	})
