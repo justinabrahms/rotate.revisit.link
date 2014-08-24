@@ -63,6 +63,7 @@ func PayloadToPayload(p Payload) (Payload, error) {
 
 	// Not sure how to handle non-jpegs yet.
 	if format != "jpeg" {
+		log.Println("We only know how to decode jpegs")
 		return p, nil
 	}
 
@@ -87,6 +88,7 @@ func PayloadToPayload(p Payload) (Payload, error) {
 
 func workIt(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
+		log.Println("Health check")
 		w.WriteHeader(200)
 		return
 	}
@@ -116,7 +118,7 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "<a href='https://github.com/revisitors'>You know me?</a>")
 	})
-	http.HandleFunc("/rotate/", workIt)
+	http.HandleFunc("/service", workIt)
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
